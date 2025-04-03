@@ -254,6 +254,9 @@ def pod52slow5(args):
                 logger.error("File name duplicates present. This will cause problems with file output. duplicate filename: {}".format(os.path.join(dirpath, pfile)))
                 kill_program()
 
+    if args.endpoint:
+        pod5_filename_set = set([x for x in args.s3_endpoint.get_all_objects() if x.endswith(".pod5")])
+        pod5_filepath_list = [args.s3_endpoint.get_s3_file(x) for x in pod5_filename_set]
     
     # check that pod5 files are actually found, otherwise exit
     if len(pod5_filepath_list) < 1:
@@ -1552,7 +1555,14 @@ def main():
                             logger.error("{} does not exist".format(pfile))
                             kill_program()
             if args.endpoint:
-                
+                if not args.endpoint.startswith("https://"):
+                    logger.error("endpoint must start with https://")
+                    kill_program()
+                args.s3_endpoint = S3Instance(url=args.s3_endpoint)
+                pod5s = [x for x in args.s3_endpoint.get_all_objects() if x.endswith(".pod5")]
+                if len(pod5s) == 0:
+                    logger.error("No pod5 files found in endpoint {}".format(args.endpoint))
+                    kill_program()
 
             if args.output:
                 if not args.output.endswith(('.slow5', '.blow5')):
