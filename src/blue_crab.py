@@ -17,7 +17,7 @@ import pyslow5 as slow5
 import pod5 as p5
 from pod5.signal_tools import DEFAULT_SIGNAL_CHUNK_SIZE, vbz_compress_signal_chunked
 
-from .s3_buckets import S3Instance
+from .s3_instances import S3Instance
 
 import cProfile, pstats, io
 
@@ -1473,7 +1473,7 @@ def main():
                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
         # make -o and -d mutually exclusive groups
         p2s_inputs = p2s.add_mutually_exclusive_group()
-        p2s_inputs.add_argument("input", metavar="POD5", nargs='+',
+        p2s_inputs.add_argument("input", metavar="POD5", nargs='*', default=None,
                         help="pod5 file/s or directories to convert")
         p2s_inputs.add_argument("-e", "--endpoint", 
                         help="s3 endpoint with pod5 files, eg. https://projects.pawsey.org.au/promethion/reads/pod5")
