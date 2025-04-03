@@ -138,6 +138,6 @@ class S3Instance:
         """
         This returns a file-like object that you can read with "with open"
         """
-        response = self.s3.get_object(Bucket=self.bucket_name, Prefix=self.prefix, Key=key)
+        response = self.s3.get_object(Bucket=self.bucket_name, Key=filename)
         return BytesIO(response["Body"].read())
 
