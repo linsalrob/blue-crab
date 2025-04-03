@@ -17,6 +17,8 @@ import pyslow5 as slow5
 import pod5 as p5
 from pod5.signal_tools import DEFAULT_SIGNAL_CHUNK_SIZE, vbz_compress_signal_chunked
 
+from .s3_buckets import S3Instance
+
 import cProfile, pstats, io
 
 from ._version import __version__
@@ -1467,9 +1469,13 @@ def main():
         p2s = subcommand.add_parser('p2s', help='POD5 -> SLOW5/BLOW5', description="Convert POD5 -> SLOW5/BLOW5",
                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
         # make -o and -d mutually exclusive groups
-        p2s_outputs = p2s.add_mutually_exclusive_group()
-        p2s.add_argument("input", metavar="POD5", nargs='+',
+        p2s_inputs = p2s.add_mutually_exclusive_group()
+        p2s_inputs.add_argument("input", metavar="POD5", nargs='+',
                         help="pod5 file/s or directories to convert")
+        p2s_inputs.add_argument("-e", "--endpoint", 
+                        help="s3 endpoint with pod5 files, eg. https://projects.pawsey.org.au/promethion/reads/pod5")
+
+        p2s_outputs = p2s.add_mutually_exclusive_group()
         p2s_outputs.add_argument("-d", "--out-dir",
                         help="output to directory")
         p2s_outputs.add_argument("-o", "--output", metavar="S/BLOW5",
@@ -1536,14 +1542,17 @@ def main():
                 logger.error("--output or --out-dir must be provided. stdout writing not supported")
                 kill_program()
 
-            for pfile in args.input:
-                if not os.path.isdir(pfile):
-                    if not pfile.endswith(".pod5"):
-                        logger.error("input argument {} not a dir or a .pod5 file. Given argument: {}".format(pfile, args.input))
-                        kill_program()
-                    if not os.path.isfile(pfile):
-                        logger.error("{} does not exist".format(pfile))
-                        kill_program()
+            if args.input:
+                for pfile in args.input:
+                    if not os.path.isdir(pfile):
+                        if not pfile.endswith(".pod5"):
+                            logger.error("input argument {} not a dir or a .pod5 file. Given argument: {}".format(pfile, args.input))
+                            kill_program()
+                        if not os.path.isfile(pfile):
+                            logger.error("{} does not exist".format(pfile))
+                            kill_program()
+            if args.endpoint:
+                
 
             if args.output:
                 if not args.output.endswith(('.slow5', '.blow5')):
